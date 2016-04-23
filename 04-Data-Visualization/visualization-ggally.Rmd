@@ -1,0 +1,41 @@
+---
+title: "Data Visualization"
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+
+```{r,echo=FALSE, message=FALSE}
+library(ggplot2)
+library(Hmisc)
+library(gridExtra)
+library(GGally)
+
+sales <- read.csv("~/GitHub/Data_Visualization/sales.csv", stringsAsFactors = T)
+```
+
+<br>
+
+### Diagnostic plots for exploratory analysis
+```{r,fig.height=5,fig.width=8, echo=FALSE}
+ggpairs(
+  sales[, 5:7],
+  mapping = ggplot2::aes(color = Customer),
+  upper = list(continuous = wrap("density", alpha = 0.5), combo = "box"),
+  lower = list(continuous = wrap("smooth", alpha = 0.3), combo = wrap("dot", alpha = 0.4)),
+  title = "Sales")
+```
+
+<br>
+
+### Qplot with color 
+```{r,fig.height=5,fig.width=10, echo=FALSE}
+
+p1 <- qplot(PrevSales,SalesAmount, colour =Customer, data = sales, facets = .~Region) + geom_smooth()
+
+p2 <- qplot(PrevSales, SalesAmount, colour= Qtr, data = sales)
+
+grid.arrange(p1, p2, ncol =2)
+```
+
