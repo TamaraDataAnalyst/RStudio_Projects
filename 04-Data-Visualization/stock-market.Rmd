@@ -1,0 +1,64 @@
+---
+title: "Stock market analysis "
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+***
+Stock market analysis with **Quantmod**.Quantmod stands for "**_Quantitative Financial Modeling and Trading Framework for R_**" 
+
+<br>
+
+```{r comment=NA, echo=FALSE,message=FALSE,warning=FALSE}
+require(quantmod)
+getSymbols("LNKD")
+```
+
+<br>
+
+###Returns the last 3 months
+```{r comment=NA , echo=FALSE,fig.height=5,fig.width=8, message=FALSE}
+
+chartSeries(LNKD, subset='last 3 months')
+addROC(n = 1, type = c("discrete", "continuous"), col = "red")
+```
+
+<br>
+
+###Returns the last 6 months
+```{r, echo=FALSE,fig.height=5,fig.width=8,message=FALSE}
+chartSeries(LNKD, subset='last 6 months',theme="white",#
+               TA="addVo();addBBands();addCCI()") 
+```
+
+<br>
+
+###Returns January 2015 to the last observation in 2016
+```{r comment=NA, echo=FALSE,fig.height=5,fig.width=8}
+candleChart(LNKD,subset='2015-01::2016')
+```
+
+<br>
+
+###Returns the first 16 weeks
+```{r comment=NA, echo=FALSE,fig.height=5,fig.width=8,message=FALSE}
+candleChart(LNKD,theme='white', type='candles') 
+reChart(major.ticks='months',subset='first 16 weeks') 
+```
+
+<br>
+
+###Create model
+```{r comment=NA, echo=FALSE}
+x <-specifyModel(Next(OpCl(LNKD)) ~ Lag(OpHi(LNKD)))
+x.ml <- buildModel(x,method='lm',training.per=c('2016-01-18','2016-02-04'))
+x.ml
+```
+
+<br>
+
+###Returns years 2015 to present
+```{r comment=NA, echo=FALSE,fig.height=5,fig.width=8,message=FALSE}
+periodReturn(LNKD,period='yearly',subset='2015::')
+```
