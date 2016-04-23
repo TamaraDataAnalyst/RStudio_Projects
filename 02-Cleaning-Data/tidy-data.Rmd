@@ -1,0 +1,95 @@
+---
+title: "Tidy Data in R"
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+***
+
+## The Structure of Tidy Data
+
+1.Each variable in a dataset should be in one column
+
+2.Each observation of that variable should be in a different row
+
+3.There should be only one table for each kind of variable
+***
+
+###Let's view an example
+
+Example1 - Transforming this dataset in order to have each variable in a column and each observation in a row. 
+
+This dataset was created in R to demonstrate a common type of untidy
+data
+
+<br>
+
+**Before**
+
+```{r comment=NA, echo=FALSE, message=FALSE}
+library(dplyr)
+library(tidyr)
+n=20
+product_revenue <- data.frame(
+  Product_ID = sample(paste0("XDS", 1:20)),
+  Country = rep(c('CAN','USA'), each = 10),
+  Costco.01 = sample(1000:10000,n,replace=TRUE),
+  Walmart.01 = sample(1000:10000,n,replace=TRUE),
+  Costco.02 = sample(1000:10000,n,replace=TRUE),
+  Walmart.02 = sample(1000:10000,n,replace=TRUE)
+  )
+
+head(product_revenue)
+```
+
+<br>
+
+**After**
+```{r comment=NA, echo=FALSE}
+product_revenue <- product_revenue %>%
+  gather(key, Sales, -Product_ID, -Country) %>%
+  separate(key,into = c("Store", "Transit" )) %>%
+  arrange(Product_ID, Country, Store ) %>%
+  spread(Store, Sales)
+
+head(product_revenue)
+
+```
+
+<br>
+
+Example2 - Transforming this dataset by splitting a single column into four real variables: LastName - FirstName - Title - PhoneNumber
+
+This dataset was created in Excel to demonstrate another common problem with messy data: Many variables are stored in one column
+
+<br>
+
+**Before**
+```{r comment=NA, echo=FALSE}
+customer <- read.csv("~/GitHub/Cleaning_Data/Customers.csv", stringsAsFactors = F)
+
+head(customer)
+```
+
+<br>
+
+**After**
+```{r comment=NA, echo=FALSE}
+customer <- customer %>%
+  separate(Contact.Person, c("LastName","FirstName","Title","PhoneNumber"),sep =  "/")  
+
+customer$PhoneNumber <- gsub(x=customer$PhoneNumber,pattern= "[[:punct:]]", replacement = ' ')  
+
+```
+
+<br>
+
+```{r showtable, results='asis', echo=FALSE}
+library(xtable)
+xt <-xtable(head(customer))
+print(xt, type = "html")
+
+
+```
+
