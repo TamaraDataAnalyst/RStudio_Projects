@@ -1,0 +1,84 @@
+---
+title: "Predicting with regression"
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+***
+
+[Multiple linear regression](https://en.wikipedia.org/wiki/General_linear_model) is a generalization of linear regression by considering more than one independent variable, and a specific case of general linear models formed by restricting the number of dependent variables to one.
+
+
+```{r, echo=FALSE, message=FALSE}
+
+require(ggplot2)
+require(GGally)
+require(reshape2)
+social <- read.csv("~/GitHub/Machine_Learning/social.csv", stringsAsFactors = F)
+```
+
+<br>
+
+###Fit model, view summary and generate prediction
+```{r comment=NA, echo=FALSE}
+fit.lm <- lm(social$Visits ~ social$NewVisits + social$BounceRate, data = social)
+
+summary(fit.lm);
+coef(fit.lm);
+summary(fit.lm)$r.squared;
+confint(fit.lm);
+pred <- predict(fit.lm,social);
+head(pred)
+```
+
+
+```{r, echo=FALSE}
+social2 <- social[,c("Visits","NewVisits","BounceRate","PageViews","Session")]
+
+social3 = melt(social2, id.vars='Visits')
+```
+
+<br>
+
+###Plot correaltion on each variable
+```{r, echo=FALSE,fig.height=5,fig.width=8}
+ggplot(social3) +
+ geom_jitter(aes(value,Visits, colour=variable),) + geom_smooth(aes(value,Visits, colour=variable), method=lm, se=FALSE) +
+  facet_wrap(~variable, scales="free_x") +
+  labs(x = "Percentage cover (%)", y = "Number of individuals (N)")
+```
+
+<br>
+
+###Diagnostic plots for Linear Models (LM)
+```{r, echo=FALSE,fig.height=5,fig.width=8,message=FALSE}
+my_fn <- function(data, mapping, ...){
+  p <- ggplot(data = data, mapping = mapping) + 
+    geom_point() + 
+    geom_smooth(method=loess, fill="red", color="red", ...) +
+    geom_smooth(method=lm, fill="blue", color="blue", ...)
+  p
+}
+
+p = ggpairs(social,columns = 3:6, lower = list(continuous = my_fn),diag = list(continuous = wrap("barDiag", colour = "blue")))
+p
+```
+
+<br>
+
+###Plot fitted vs residuals color by social
+```{r, echo=FALSE,fig.height=5,fig.width=8}
+qplot(fit.lm$fitted,fit.lm$residuals, colour = Social, data = social, xlab = "Fitted", ylab = "Residuals")
+```
+
+<br>
+
+###Plot multivariable regression
+```{r, echo=FALSE,fig.height=5,fig.width=8}
+p <- ggplot(social, aes(Visits, pred)) + geom_point(size = 2, colour = "blue")
+p + geom_smooth(method="lm", se= TRUE, col="red",size = 1.5) +
+  labs(x = "Visits" ) +
+  labs(y = expression(frac(Model,Response))) +
+  labs(title = "Visits vs Bounce Rate + Page Views Relationship")  
+```
