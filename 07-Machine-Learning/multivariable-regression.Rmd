@@ -1,0 +1,81 @@
+---
+title: "Machine learning for multiple linear regression"
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+***
+
+####[Multiple linear regression](https://en.wikipedia.org/wiki/General_linear_model) is a generalization of linear regression by considering more than one independent variable, and a specific case of general linear models formed by restricting the number of dependent variables to one.
+
+
+### Split data into training and testing chunks
+```{r comment=NA,echo=FALSE,message=FALSE}
+require(caret)
+require(ggplot2)
+require(gridExtra)
+social <- read.csv("~/GitHub/Machine_Learning/social.csv")
+set.seed(1)
+inTrain <- createDataPartition(y = social$BounceRate, p = 0.7, list = FALSE)
+training <- social[inTrain,] ; testing <- social[-inTrain,]
+dim(training) ; dim(testing)
+
+
+
+```
+
+
+###feature plot
+```{r, echo=FALSE, fig.height=5, fig.width=6}
+featurePlot(x = training[,c("Visits","NewVisits","PageViews")] , y = training$BounceRate,
+            plot = "pairs")
+
+```
+
+
+###Fit a linear model
+```{r comment=NA, echo=FALSE}
+modFit <- train(BounceRate ~ Visits + NewVisits + PageViews, method = "lm", data = training)
+
+finMod <- modFit$finalModel
+ 
+print(modFit)
+```
+
+
+###Plot fitted versus residuals color by bounce rate
+```{r, echo=FALSE, fig.height=5, fig.width=6}
+qplot(finMod$fitted.values, finMod$residuals, colour = BounceRate,  data = training, xlab = "Fitted", ylab = "Residuals")
+```
+
+
+###Plot fitted versus residuals 
+```{r, echo=FALSE, fig.height=5, fig.width=6}
+qplot(.fitted, .resid, data = finMod) +
+  geom_hline(yintercept = 0) +
+  geom_smooth(se = FALSE)
+```
+
+
+###Predict training and testing datasets
+```{r comment=NA, echo=FALSE}
+pred <- predict(modFit, training)
+pred1 <- predict(modFit, testing)
+
+head(pred);head(pred1)
+```
+
+
+###Plot predictive models
+```{r, echo=FALSE, fig.height=5, fig.width=8}
+g1 <- ggplot(training, aes(BounceRate, pred)) + geom_point(size = 2, colour = "blue") + geom_smooth(method="lm", se= FALSE, col="red",size = 1.5) +
+  labs(x = "Visits" ) + labs( y = "Bounce Rate") + ggtitle("Training Set / RMSE = 8.92")
+
+
+g2 <- ggplot(testing, aes(BounceRate, pred1)) + geom_point(size = 2, colour = "blue") + geom_smooth(method="lm", se= FALSE, col="red",size = 1.5) +
+  labs(x = "Visits" ) + labs( y = "Bounce Rate") + ggtitle("Testing Set / RMSE = 8.84")
+
+grid.arrange(g1, g2, ncol = 2)
+```
+
