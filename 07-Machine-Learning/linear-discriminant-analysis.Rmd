@@ -1,0 +1,64 @@
+---
+title: "Linear discriminant analysis"
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+***
+####[Linear discriminant analysis](https://en.wikipedia.org/wiki/Linear_discriminant_analysis) **(LDA)** is a generalization of Fisher's linear discriminant, *a method used in statistics, pattern recognition and machine learning* to find a linear combination of features that characterizes or separates two or more classes of objects or events.
+
+<br>
+
+### Split data into training and testing chunks
+```{r comment=NA,echo=FALSE, message=FALSE}
+require(caret)
+require (MASS)
+require(ggplot2)
+require(scales)
+require(gridExtra)
+social<- read.csv("~/GitHub/Machine_Learning/social_traffic.csv")
+set.seed(1)
+inTraining <- createDataPartition(y = social$Social, p = .75, list = FALSE, times = 1)
+training <- social[ inTraining,]
+testing  <- social[-inTraining,]
+dim(training);dim(testing)
+```
+
+<br>
+
+###View model
+```{r comment=NA, echo=FALSE}
+lda.fit <- lda(Social ~ Visits+BounceRate, data = training)
+lda.fit
+```
+
+<br>
+
+###Generate predictions on the training dataset
+```{r comment=NA, echo=FALSE}
+lda.pred=predict(lda.fit,training)
+head(lda.pred$posterior)
+```
+
+<br>
+
+###Plot Linear discriminant analysis on Social 
+```{r, echo=FALSE,fig.height=5,fig.width=8}
+pca <- prcomp(training[,c("Visits","BounceRate")],
+              center = TRUE,
+              scale. = TRUE) 
+prop.pca = pca$sdev^2/sum(pca$sdev^2)
+prop.lda = lda.fit$svd^2/sum(lda.fit$svd^2)
+
+p1 <- ggplot(training) + geom_point(aes(lda.pred$x[,1], lda.pred$x[,2], colour = Social, shape = Social), size = 2.5) + 
+  labs(x = paste("LD1 (", percent(prop.lda[1]), ")", sep=""),
+       y = paste("LD2 (", percent(prop.lda[2]), ")", sep=""))
+
+p2 <- ggplot(training) + geom_point(aes(pca$x[,1], pca$x[,2], colour = Social, shape = Social), size = 2.5) +
+  labs(x = paste("PC1 (", percent(prop.pca[1]), ")", sep=""),
+       y = paste("PC2 (", percent(prop.pca[2]), ")", sep=""))
+
+grid.arrange(p1, p2)
+
+```
