@@ -1,0 +1,85 @@
+---
+title: "Cluster"
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+## Unsupervised Machine Learning
+***
+
+
+```{r,echo=FALSE, message=FALSE}
+library("ggfortify")
+set.seed(1)
+
+SocialbyStates <- data.frame(row.names= c('Alabama','Alaska', 
+'Arizona ','Arkansas','California','Colorado',
+'Connecticut','Delaware','Florida','Georgia','Hawaii',
+'Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan', 
+'Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico',
+'New York','North Carolina','North Dakota','Ohio',
+'Oklahoma','Oregon','Pennsylvania','Rhode Island '
+,'South Carolina','South Dakota','Tennessee','Texas',
+'Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'),
+    
+    LinkedIn = sample(30000:50000,50),
+    Facebook = sample(7000:9000,50),
+    Twitter = sample(5000:7000,50))
+ 
+   df <- SocialbyStates[, c("LinkedIn","Facebook","Twitter")] 
+   df <- as.matrix(df)
+```
+
+<br>
+
+###Heatmap of social traffic by states
+```{r, fig.height=5,fig.width=8,echo=FALSE,message=FALSE}
+autoplot(scale(df), ylab = "States", xlab = "Social Traffic")
+```
+
+<br>
+
+###Plot K-means
+```{r,fig.height=5,fig.width=8, echo=FALSE}
+autoplot(kmeans(SocialbyStates, 3), data = SocialbyStates,
+            label = TRUE, label.size = 3, frame = TRUE) 
+```
+
+<br>
+
+#Plot cluster 
+```{r,fig.height=5,fig.width=8, echo=FALSE,message=FALSE}
+library(cluster)
+  autoplot(pam(SocialbyStates, 3), frame = TRUE, frame.type = 'norm')
+```
+
+<br>
+
+```{r, echo=FALSE}
+set.seed(1)
+  ss <- sample(1:50, 10) 
+  df <- SocialbyStates[ss, ] 
+```
+
+<br>
+
+###Compute Euclidean pairwise distances
+```{r comment=NA, echo=FALSE}
+   
+ df.scaled <- scale(df)
+   head(round(df.scaled, 2))  
+dist.eucl <- dist(df.scaled, method = "euclidean")
+  
+```
+
+<br>
+
+###Heatmap clustering dendogram to visualize patterns of similar observations
+```{r,fig.height=5,fig.width=8, echo=FALSE}
+heatmap(as.matrix(dist.eucl), symm = TRUE,
+          distfun = function(x) as.dist(x))
+```
+
+
+
