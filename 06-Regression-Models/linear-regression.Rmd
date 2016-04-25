@@ -14,7 +14,7 @@ output:
 require(ggplot2)
 require(ggfortify)
 require(GGally)
-forecast <- read.csv("~/GitHub/Regression_Models/forecast.csv",stringsAsFactors = T)
+forecast <- read.csv("")
 ```
 
 <br>
