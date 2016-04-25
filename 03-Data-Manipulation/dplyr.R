@@ -2,7 +2,7 @@ require(dplyr)
 
 #Data Manupulation and Analysis with dplyr 
 
-setwd("~/RProjects/Reading_Large_Dataset")
+setwd("")
 
 download.file ("http://stat-computing.org/dataexpo/2009/2008.csv.bz2", destfile = "2008.csv.bz2")
 
