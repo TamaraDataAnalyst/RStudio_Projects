@@ -1,0 +1,81 @@
+---
+title: "Simple linear regression"
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+***
+####[Simple linear regression](https://en.wikipedia.org/wiki/Simple_linear_regression) is the least squares estimator of a linear regression model with a single explanatory variable. In other words, simple linear regression fits a straight line through the set of n points in such a way that makes the sum of squared residuals of the model (that is, vertical distances between the points of the data set and the fitted line) as small as possible.
+
+
+```{r, echo=FALSE, message=FALSE}
+
+require(ggplot2)
+require(ggfortify)
+require(GGally)
+forecast <- read.csv("~/GitHub/Regression_Models/forecast.csv",stringsAsFactors = T)
+```
+
+<br>
+
+###Fit model, view summary and generate prediction
+```{r comment=NA, echo=FALSE}
+lm.fit=lm(Sold.units ~ Cost.per.unit ,data = forecast)
+
+summary(lm.fit);
+coef(lm.fit);
+summary(lm.fit)$r.squared;
+confint(lm.fit);
+pred <- predict(lm.fit,forecast);
+head(pred)
+```
+
+<br>
+
+###View correlation between variables
+```{r comment=NA , echo=FALSE,fig.height=5,fig.width=8, message=FALSE}
+lowerFn <- function(data, mapping, method = "lm", ...) {
+  p <- ggplot(data = data, mapping = mapping) +
+    geom_point(colour = "blue") +
+    geom_smooth(method = method, color = "red", ...)
+  p
+}
+
+ggpairs(
+  forecast[, 3:4], lower = list(continuous = wrap(lowerFn, method = "lm")),
+  diag = list(continuous = wrap("barDiag", colour = "blue")),
+  upper = list(continuous = wrap("cor", size = 10))
+)
+```
+
+<br>
+
+###Diagnostic plots for Linear Models (LM)
+```{r, echo=FALSE,fig.height=5,fig.width=8,message=FALSE}
+autoplot(lm.fit, which = 1:6, label.size = 3, data = forecast,
+         colour = 'Color')
+```
+
+<br>
+
+###Plot fitted vs residuals 
+```{r, echo=FALSE,fig.height=5,fig.width=8}
+qplot(.fitted, .resid, data = lm.fit) +
+  geom_hline(yintercept = 0) +
+  geom_smooth(se = FALSE)
+```
+
+<br>
+
+###Plot predicion linear regression model
+```{r, echo=FALSE,fig.height=5,fig.width=8}
+g <- ggplot(forecast, aes(Cost.per.unit, Sold.units)) + geom_point(size = 3)
+
+g + geom_smooth(method="lm", se=FALSE, col="steelblue",size = 2) +
+  labs(x = "Cost/Unit" ) +
+  labs(y = expression(frac(Sold.units,Cost.per.unit))) +
+  labs(title = "Sold Units - Cost/Unit Relationship")  +
+  annotate("text", x = 75, y = 13000, label = "y = 102.04x - 191.64
+           r.squared 0.93")
+```
