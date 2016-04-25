@@ -1,0 +1,94 @@
+---
+title: "Decision Tree"
+output: 
+  html_document: 
+    highlight: espresso
+    theme: cerulean
+---
+***
+####[Decision trees](https://en.wikipedia.org/wiki/Decision_tree) are commonly used in operations research, specifically in **decision analysis**, to help identify a strategy most likely to reach a goal, but are also a popular tool in **machine learning**.
+
+<br>
+
+### Split data into training and testing chunks
+```{r comment=NA,echo=FALSE,message=FALSE}
+require(caret)
+require(rpart)
+require(rattle)
+require(rpart.plot)
+DM<- read.csv("~/GitHub/Machine_Learning/direct_marketing.csv")
+set.seed(1)
+inTraining <- createDataPartition(y = DM$conversion, p = .75, list = FALSE, times = 1)
+training <- DM[ inTraining,]
+testing  <- DM[-inTraining,]
+
+dim(training);dim(testing)
+
+```
+
+<br>
+
+###Create and plot the decision tree
+```{r, echo=FALSE, fig.height=5, fig.width=8}
+limited_complexity_tree <- rpart(conversion ~ gender+home_owner+region+education+salary+channel,cp = 0.001,
+                  maxdepth = 5,
+                  minbucket = 5,
+                  method = "class",  
+                      data = training)   
+
+prp(limited_complexity_tree)
+```
+
+
+<br>
+
+###Generate predictions on the training set and check the accuracy with a confusion matrix
+```{r comment=NA, echo=FALSE}
+training_preds <- predict(limited_complexity_tree, 
+                       newdata=training, 
+                       type="class")   
+
+confusionMatrix(training_preds,training$conversion)
+```
+
+<br>
+
+###Validate the accuracy with the testing dataset
+```{r comment=NA, echo=FALSE}
+test_preds <- predict(limited_complexity_tree,              
+                      newdata=testing,      
+                      type="class") 
+
+confusionMatrix(test_preds,testing$conversion)
+```
+
+<br>
+
+###Create cross validation, trainControl object and view model
+```{r comment=NA, echo=FALSE}
+training$conversion <- as.factor(training$conversion)
+train_control <- trainControl(method = "repeatedcv",  
+                number = 10,
+                repeats = 2)   
+tune_grid = expand.grid(cp=c(0.001))
+
+validated_tree <- train(conversion ~ gender+home_owner+region+education+salary+channel,
+                    data=training, # Data set
+                    method="rpart", # Model type(decision tree)
+                    trControl= train_control, # Model control options
+                    tuneGrid = tune_grid, # Required model parameters
+                    maxdepth = 5,   # Additional parameters***
+                    minbucket=5)                          
+validated_tree 
+
+```
+
+<br>
+
+###Fancy decision tree
+```{r, echo=FALSE, fig.height=5,fig.width=8}
+modfit <- train(conversion ~ gender + education + salary, method ="rpart", data = training)
+
+fancyRpartPlot(modfit$finalModel)
+```
+
