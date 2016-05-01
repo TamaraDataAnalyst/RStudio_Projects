@@ -1,0 +1,49 @@
+---
+title: "***Gradient boosting machine***"
+output: pdf_document
+---
+
+[Gradient boosting](https://en.wikipedia.org/wiki/Gradient_boosting) is a **machine learning** technique for regression and classification problems, which produces a prediction model in the form of an ensemble of weak prediction models, typically decision trees.
+
+***
+
+### Split data into training and testing chunks
+```{r comment=NA,echo=FALSE, message=FALSE}
+require(caret)
+require(gridExtra)
+DM<- read.csv("~/GitHub/Machine_Learning/direct_marketing.csv")
+set.seed(1)
+inTraining <- createDataPartition(y = DM$conversion, p = .75, list = FALSE, times = 1)
+training <- DM[ inTraining,]
+testing  <- DM[-inTraining,]
+
+training$conversion <- as.factor(training$conversion)
+dim(training);dim(testing)
+```
+
+<br>
+
+###Create and view model
+```{r comment=NA, echo=FALSE, message=FALSE}
+bootControl <- trainControl(number = 25)
+gbmGrid <- expand.grid(.interaction.depth = (1:5) * 2,
+                       .n.trees = (1:10)*25, .shrinkage = .1, .n.minobsinnode = 10)
+set.seed(2)
+gbmFit <- train(conversion ~ gender+education+salary+channel , data = training,
+                method = "gbm", trControl = bootControl, verbose = FALSE,
+                tuneGrid = gbmGrid)
+
+gbmFit
+```
+
+<br>
+
+###Plot the gradient boosting model
+```{r, echo=FALSE,fig.height=5,fig.width=8}
+ggplot(gbmFit, plotType = "level")
+g1 <- ggplot(gbmFit) + ggtitle("Accuracy")
+g2 <- ggplot(gbmFit, metric = "Kappa") + ggtitle("Kappa")
+
+grid.arrange(g1,g2, ncol=2)
+
+```
